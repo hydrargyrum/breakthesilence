@@ -56,6 +56,10 @@ class Converter:
             # "type" hasn't the same meaning as in android sms database
             sms['flags'] = to_uint(sms['type'])
 
+            sms['type'] = 1
+            if sms['flags'] & MessageFlags.outgoing:
+                sms['type'] = 2
+
             if sms['flags'] & MessageFlags.key_exchange_mask:
                 sms['body'] = f"Key exchange (flags = {sms['flags']:#010x}) - {sms['body']}"
             elif sms['flags'] & MessageFlags.errors_mask:
