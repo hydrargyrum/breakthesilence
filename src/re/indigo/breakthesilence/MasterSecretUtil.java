@@ -19,6 +19,7 @@
 package re.indigo.breakthesilence;
 
 import java.io.IOException;
+import java.io.FileReader;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,6 +34,13 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.security.Security;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import java.io.File;
+import java.util.Properties;
+import java.util.Base64;
+
 
 /**
  * Helper class for generating and securely storing a MasterSecret.
@@ -65,18 +73,20 @@ public class MasterSecretUtil {
   }
 
   public static class MasterSecret {
-    public MasterSecret(SecretKeySpec a, SecretKeySpec b) {}
+    public byte[] encryptionKey;
+    public byte[] macKey;
+
+    public MasterSecret(SecretKeySpec a, SecretKeySpec b) {
+      encryptionKey = a.getEncoded();
+      macKey = b.getEncoded();
+    }
   }
 
-  public class InputData {
+  public static class InputData {
     public byte[] master_secret;
     public byte[] mac_salt;
     public int    passphrase_iterations;
-    public byte[] encryptedMasterSecret;
     public byte[] encryption_salt;
-    public byte[] combinedSecrets;
-    public byte[] encryptionSecret;
-    public byte[] macSecret;
   }
 
   public static byte[][] split(byte[] input, int firstLength, int secondLength) {
@@ -92,25 +102,19 @@ public class MasterSecretUtil {
   }
 
   public static MasterSecret getMasterSecret(InputData context, String passphrase)
-      throws InvalidPassphraseException
+      throws InvalidPassphraseException, GeneralSecurityException, IOException
   {
-    try {
-      byte[] encryptedAndMacdMasterSecret = context.master_secret;
-      byte[] macSalt                      = context.mac_salt;
-      int    iterations                   = context.passphrase_iterations;
-      byte[] encryptedMasterSecret        = verifyMac(macSalt, iterations, encryptedAndMacdMasterSecret, passphrase);
-      byte[] encryptionSalt               = context.encryption_salt;
-      byte[] combinedSecrets              = decryptWithPassphrase(encryptionSalt, iterations, encryptedMasterSecret, passphrase);
-      byte[] encryptionSecret             = split(combinedSecrets, 16, 20)[0];
-      byte[] macSecret                    = split(combinedSecrets, 16, 20)[1];
+    byte[] encryptedAndMacdMasterSecret = context.master_secret;
+    byte[] macSalt                      = context.mac_salt;
+    int    iterations                   = context.passphrase_iterations;
+    byte[] encryptedMasterSecret        = verifyMac(macSalt, iterations, encryptedAndMacdMasterSecret, passphrase);
+    byte[] encryptionSalt               = context.encryption_salt;
+    byte[] combinedSecrets              = decryptWithPassphrase(encryptionSalt, iterations, encryptedMasterSecret, passphrase);
+    byte[] encryptionSecret             = split(combinedSecrets, 16, 20)[0];
+    byte[] macSecret                    = split(combinedSecrets, 16, 20)[1];
 
-      return new MasterSecret(new SecretKeySpec(encryptionSecret, "AES"),
-                              new SecretKeySpec(macSecret, "HmacSHA1"));
-    } catch (GeneralSecurityException e) {
-      return null; //XXX
-    } catch (IOException e) {
-      return null; //XXX
-    }
+    return new MasterSecret(new SecretKeySpec(encryptionSecret, "AES"),
+                            new SecretKeySpec(macSecret, "HmacSHA1"));
   }
 
   private static SecretKey getKeyFromPassphrase(String passphrase, byte[] salt, int iterations)
@@ -181,5 +185,48 @@ public class MasterSecretUtil {
     System.arraycopy(mac,  0, result, data.length, mac.length);
 
     return result;
+  }
+
+  public static void main(String[] args) {
+    Security.addProvider(new BouncyCastleProvider());
+
+    File propFile = new File(args[0]);
+
+    Properties props = new Properties();
+    try {
+      props.load(new FileReader(propFile));
+    } catch (IOException exc) {
+      System.err.println("Cannot read properties from " + propFile);
+      exc.printStackTrace(System.err);
+      System.exit(1);
+      return;
+    }
+
+
+    InputData silProps = new InputData();
+    silProps.passphrase_iterations = Integer.parseInt(props.getProperty("passphrase_iterations"));
+    silProps.master_secret = Base64.getDecoder().decode(props.getProperty("master_secret"));
+    silProps.mac_salt = Base64.getDecoder().decode(props.getProperty("mac_salt"));
+    silProps.encryption_salt = Base64.getDecoder().decode(props.getProperty("encryption_salt"));
+
+    MasterSecret sec;
+    try {
+       sec = getMasterSecret(silProps, "unencrypted");
+    } catch (InvalidPassphraseException exc) {
+      System.err.println("Invalid passphrase!");
+      System.exit(1);
+      return;
+    } catch (GeneralSecurityException exc) {
+      exc.printStackTrace(System.err);
+      System.exit(1);
+      return;
+    } catch (IOException exc) {
+      exc.printStackTrace(System.err);
+      System.exit(1);
+      return;
+    }
+
+    System.out.println("encryption_key = " + Base64.getEncoder().encodeToString(sec.encryptionKey));
+    System.out.println("mac_key = " + Base64.getEncoder().encodeToString(sec.macKey));
   }
 }
