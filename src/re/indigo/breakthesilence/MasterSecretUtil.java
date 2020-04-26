@@ -87,6 +87,7 @@ public class MasterSecretUtil {
     public byte[] mac_salt;
     public int    passphrase_iterations;
     public byte[] encryption_salt;
+    public String user_passphrase;
   }
 
   public static byte[][] split(byte[] input, int firstLength, int secondLength) {
@@ -202,16 +203,21 @@ public class MasterSecretUtil {
       return;
     }
 
+    String userPassphrase = new String(System.console().readPassword("Password (leave empty if empty): "));
+    if (userPassphrase.isEmpty()) {
+      userPassphrase = UNENCRYPTED_PASSPHRASE;
+    }
 
     InputData silProps = new InputData();
     silProps.passphrase_iterations = Integer.parseInt(props.getProperty("passphrase_iterations"));
     silProps.master_secret = Base64.getDecoder().decode(props.getProperty("master_secret"));
     silProps.mac_salt = Base64.getDecoder().decode(props.getProperty("mac_salt"));
     silProps.encryption_salt = Base64.getDecoder().decode(props.getProperty("encryption_salt"));
+    silProps.user_passphrase = userPassphrase;
 
     MasterSecret sec;
     try {
-       sec = getMasterSecret(silProps, "unencrypted");
+       sec = getMasterSecret(silProps, silProps.user_passphrase);
     } catch (InvalidPassphraseException exc) {
       System.err.println("Invalid passphrase!");
       System.exit(1);
