@@ -191,6 +191,11 @@ public class MasterSecretUtil {
   public static void main(String[] args) {
     Security.addProvider(new BouncyCastleProvider());
 
+    if (args.length != 1) {
+      System.err.println("Usage: breakthesilence.jar SILENCE_EXPORT_DIR_PATH");
+      System.exit(64);
+      return;
+    }
     File propFile = new File(args[0]);
 
     Properties props = new Properties();
@@ -199,7 +204,7 @@ public class MasterSecretUtil {
     } catch (IOException exc) {
       System.err.println("Cannot read properties from " + propFile);
       exc.printStackTrace(System.err);
-      System.exit(1);
+      System.exit(74);
       return;
     }
 
@@ -220,7 +225,7 @@ public class MasterSecretUtil {
        sec = getMasterSecret(silProps, silProps.user_passphrase);
     } catch (InvalidPassphraseException exc) {
       System.err.println("Invalid passphrase!");
-      System.exit(1);
+      System.exit(65);
       return;
     } catch (GeneralSecurityException exc) {
       exc.printStackTrace(System.err);
@@ -228,7 +233,7 @@ public class MasterSecretUtil {
       return;
     } catch (IOException exc) {
       exc.printStackTrace(System.err);
-      System.exit(1);
+      System.exit(74);
       return;
     }
 
