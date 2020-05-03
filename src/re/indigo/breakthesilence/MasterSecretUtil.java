@@ -42,7 +42,15 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.Base64;
-
+import javax.xml.stream.XMLInputFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 
 public class MasterSecretUtil {
@@ -66,6 +74,12 @@ public class MasterSecretUtil {
     public InvalidPassphraseException(String detailMessage) {
       super(detailMessage);
       // TODO Auto-generated constructor stub
+    }
+  }
+
+  public static class InvalidPropertiesException extends Exception {
+    public InvalidPropertiesException(String detailMessage) {
+      super(detailMessage);
     }
   }
 
@@ -185,6 +199,45 @@ public class MasterSecretUtil {
     return result;
   }
 
+  public static Properties parseSilenceXML(File xmlFile) throws SAXException, IOException, InvalidPropertiesException, ParserConfigurationException {
+    Properties props = new Properties();
+
+    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+    Document doc = dBuilder.parse(xmlFile);
+    Element root = doc.getDocumentElement();
+    NodeList children = root.getChildNodes();
+
+    if (!root.getTagName().equals("map")) {
+      throw new InvalidPropertiesException("No <map> root tag");
+    }
+
+    for (int i = 0; i < children.getLength(); i++) {
+      Node child = children.item(i);
+      Element echild;
+      if (child.getNodeType() != Node.ELEMENT_NODE) {
+        continue;
+      }
+
+      echild = (Element) child;
+
+      String propType = echild.getTagName();
+      String propName = echild.getAttribute("name");
+
+      if (propType.equals("int") || propType.equals("bool")) {
+        props.setProperty(propName, echild.getAttribute("value"));
+      } else if (propType.equals("string")) {
+        props.setProperty(propName, echild.getTextContent());
+      }
+    }
+
+    if (!props.containsKey("mac_salt")) {
+      throw new InvalidPropertiesException("Missing essential properties in XML");
+    }
+
+    return props;
+  }
+
   public static void main(String[] args) {
     Security.addProvider(new BouncyCastleProvider());
 
@@ -193,15 +246,30 @@ public class MasterSecretUtil {
       System.exit(64);
       return;
     }
-    File propFile = new File(args[0]);
+    File xmlFile = new File(args[0]);
 
-    Properties props = new Properties();
+    Properties props;
     try {
-      props.load(new FileReader(propFile));
+      props = parseSilenceXML(xmlFile);
     } catch (IOException exc) {
-      System.err.println("Cannot read properties from " + propFile);
+      System.err.println("Cannot read properties from " + xmlFile + ": " + exc.getMessage());
       exc.printStackTrace(System.err);
       System.exit(74);
+      return;
+    } catch (SAXException exc) {
+      System.err.println("Invalid XML in " + xmlFile + ": " + exc.getMessage());
+      exc.printStackTrace(System.err);
+      System.exit(65);
+      return;
+    } catch (ParserConfigurationException exc) {
+      System.err.println("Error parsing XML " + xmlFile + ": " + exc.getMessage());
+      exc.printStackTrace(System.err);
+      System.exit(1);
+      return;
+    } catch (InvalidPropertiesException exc) {
+      System.err.println("Bad XML file " + xmlFile + ": " + exc.getMessage());
+      exc.printStackTrace(System.err);
+      System.exit(65);
       return;
     }
 
