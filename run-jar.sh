@@ -25,4 +25,12 @@ then
 	exit 64
 fi
 
-java -cp "$BCPROV_JAR:build/breakthesilence.jar" re.indigo.breakthesilence.MasterSecretUtil "$@"
+old_tty=$(stty -g)
+trap "stty $old_tty" EXIT
+
+stty -echo
+printf "Password (leave empty if empty): " >&2
+read passwd
+echo >&2
+
+echo "$passwd" | java -cp "$BCPROV_JAR:build/breakthesilence.jar" re.indigo.breakthesilence.MasterSecretUtil "$@"

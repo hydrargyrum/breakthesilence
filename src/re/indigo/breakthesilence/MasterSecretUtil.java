@@ -38,6 +38,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.io.File;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.Base64;
 
@@ -203,7 +205,23 @@ public class MasterSecretUtil {
       return;
     }
 
-    String userPassphrase = new String(System.console().readPassword("Password (leave empty if empty): "));
+    String userPassphrase;
+
+    if (System.console() != null) {
+      userPassphrase = new String(System.console().readPassword("Password (leave empty if empty): "));
+    } else {
+      System.err.println("No console, reading password from stdin.");
+      BufferedReader buffer = new BufferedReader(new InputStreamReader(System.in));
+      try {
+        userPassphrase = buffer.readLine();
+      } catch (IOException exc) {
+        System.err.println("Can't read stdin");
+        exc.printStackTrace(System.err);
+        System.exit(74);
+        return;
+      }
+    }
+
     if (userPassphrase.isEmpty()) {
       userPassphrase = UNENCRYPTED_PASSPHRASE;
     }
