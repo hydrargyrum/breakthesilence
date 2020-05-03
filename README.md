@@ -1,6 +1,6 @@
 # BreakTheSilence
 
-TL;DR: BreakTheSilence is a tool to decrypt Silence Android app messages
+TL;DR: BreakTheSilence is a tool to decrypt [Silence Android](https://f-droid.org/app/org.smssecure.smssecure) app messages
 
 ## Longer version
 
@@ -40,15 +40,12 @@ TODO convert to `.properties`
 Run:
 	./build-jar.sh
 
-## Fetch master key
-TODO properties
+## Decrypt `SilenceExport` backup dir into a single JSON file
 Run:
-	./run-jar.sh path/to/file.properties
 
-## Process database, export to JSON
-TODO pass keys
+	./run-all.sh path/to/SilenceExport/ silence-backup.json
 
-	./breakthesilence_to_json.py path/to/SilenceExport silence-backup.json
+`run-all.sh` takes the path to `SilenceExport` dir which contains the exported backup from Silence, and the path to output JSON file.
 
 ## Process JSON
 You can convert the messages JSON file to many formats with sister project [Epistolaire converters](https://gitlab.com/hydrargyrum/epistolaire/-/tree/master/converters).
