@@ -27,27 +27,26 @@ I eventually gave up and simply used Silence's code (Java) as a blackbox to find
 When the master encryption key is found, another tool can process the SQLite database to decrypt its content, in Python.
 
 # How to use
-## Export encrypted database from app
+## 1. Export encrypted database from app
 In the Silence app, open the "3 dots" menu, select "Import/Export" and choose "Export encrypted backup".
 You will now have a `SilenceExport` directory in `/storage/emulated/0` (user's accessible root dir).
 
-## Transfer the `SilenceExport` to computer
+## 2. Transfer the `SilenceExport` to computer
 Use whatever means you can: [Syncthing](https://f-droid.org/packages/com.nutomic.syncthingandroid), etc.
 
-## Build BreakTheSilence
-TODO convert to `.properties`
-
+## 3. Build BreakTheSilence
 Run:
+
 	./build-jar.sh
 
-## Decrypt `SilenceExport` backup dir into a single JSON file
+## 4. Decrypt `SilenceExport` backup dir into a single JSON file
 Run:
 
 	./run-all.sh path/to/SilenceExport/ silence-backup.json
 
 `run-all.sh` takes the path to `SilenceExport` dir which contains the exported backup from Silence, and the path to output JSON file.
 
-## Process JSON
+## 5. Process JSON
 You can convert the messages JSON file to many formats with sister project [Epistolaire converters](https://gitlab.com/hydrargyrum/epistolaire/-/tree/master/converters).
 
 The JSON format is easy to use, so one can write another converter.
