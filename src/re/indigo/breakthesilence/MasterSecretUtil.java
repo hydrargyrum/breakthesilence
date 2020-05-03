@@ -42,11 +42,6 @@ import java.util.Properties;
 import java.util.Base64;
 
 
-/**
- * Helper class for generating and securely storing a MasterSecret.
- *
- * @author Moxie Marlinspike
- */
 
 public class MasterSecretUtil {
 
