@@ -100,8 +100,22 @@ class Converter:
             yield dict(zip(names, row))
 
 
-Converter(
+print('Enter output of run-jar.sh:')
+props = {}
+while True:
+    try:
+        key, _, value = input().partition('=')
+    except EOFError:
+        break
+    props[key.strip()] = value.strip()
+
+converter = Converter(
     Path(sys.argv[1]),
-    b'',
-    b'',
-).convert(sys.argv[2])
+    b64decode(props['encryption_key']),
+    b64decode(props['mac_key']),
+)
+print('OK, successfully read properties.')
+
+print('Proceeding to conversion, this may take a while, please wait!')
+converter.convert(sys.argv[2])
+print('Done!')
