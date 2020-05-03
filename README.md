@@ -35,12 +35,27 @@ You will now have a `SilenceExport` directory in `/storage/emulated/0` (user's a
 Use whatever means you can: [Syncthing](https://f-droid.org/packages/com.nutomic.syncthingandroid), etc.
 
 ## 3. Build BreakTheSilence
-Run:
+[Bouncy Castle](https://bouncycastle.org/) libs are used for cryptography.
+They are needed to build the app. Either download the "provider" JAR yourself on [their site](https://bouncycastle.org/latest_releases.html), or use those from your distribution.
+
+If the `bcprov...jar` is not in current directory, set the `BCPROV_JAR` env variable to the path to JAR file.
+
+	# Example on Debian
+	export BCPROJ_JAR=/usr/share/maven-repo/org/bouncycastle/bcprov/1.61/bcprov-1.61.jar
+
+	# Example with download in current directory, no need env variable
+	curl -LO https://bouncycastle.org/download/bcprov-jdk15on-165.jar
+
+Then build the BreakTheSilence app, run:
 
 	./build-jar.sh
 
+Alternatively, you can download already-compiled JAR files from the [Gitlab built artifact](https://gitlab.com/hydrargyrum/breakthesilence/pipelines).
+
 ## 4. Decrypt `SilenceExport` backup dir into a single JSON file
-Run:
+As with the build, you need a `bcprov*.jar` or set `BCPROV_JAR`.
+
+Then run:
 
 	./run-all.sh path/to/SilenceExport/ silence-backup.json
 
