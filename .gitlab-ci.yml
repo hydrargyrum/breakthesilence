@@ -1,0 +1,13 @@
+image: circleci/openjdk:latest
+
+compile:
+    stage: build
+    script:
+        - curl -LO https://bouncycastle.org/download/bcprov-jdk15on-165.jar
+        - BCPROJ_JAR=bcprov-jdk15on-165.jar ./build-jar.sh
+    artifacts:
+        paths:
+            - ./build/breakthesilence.jar
+            - ./bcprov-jdk15on-165.jar
+        expire_in: 1 month
+
