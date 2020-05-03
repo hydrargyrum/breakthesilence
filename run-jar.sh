@@ -33,4 +33,4 @@ printf "Password (leave empty if empty): " >&2
 read passwd
 echo >&2
 
-echo "$passwd" | java -cp "$BCPROV_JAR:build/breakthesilence.jar" re.indigo.breakthesilence.MasterSecretUtil "$@"
+echo "$passwd" | java -cp "$BCPROV_JAR:build/breakthesilence.jar" re.indigo.breakthesilence.MasterSecretUtil "$1/shared_prefs/SecureSMS-Preferences.xml"
