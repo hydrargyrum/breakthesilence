@@ -5,7 +5,7 @@ TL;DR: BreakTheSilence is a tool to decrypt [Silence Android](https://f-droid.or
 ## Longer version
 
 [Silence](https://silence.im/) is an [open-source](https://f-droid.org/app/org.smssecure.smssecure) Android SMS/MMS app which can encrypt
-messages to your recipients.
+messages to your recipients, based on Signal before Signal went [TiVoized](https://whispersystems.discoursehosting.net/t/how-to-get-signal-apks-outside-of-the-google-play-store/808/20) due to Moxie's gigantic ego.
 
 It also encrypts messages on the phone (even messages that were unencrypted on the wire), unlike other SMS/MMS apps, which helps your privacy if your phone gets lost.
 However, it prevents from backuping its messages with [ordinary apps](https://f-droid.org/packages/re.indigo.epistolaire).
