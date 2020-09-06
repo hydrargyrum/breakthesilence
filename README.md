@@ -53,6 +53,8 @@ Then build the BreakTheSilence app, run:
 Alternatively, you can download already-compiled JAR files from the [Gitlab built artifact](https://gitlab.com/hydrargyrum/breakthesilence/pipelines).
 
 ## 4. Decrypt `SilenceExport` backup dir into a single JSON file
+[PyCryptodome](https://www.pycryptodome.org/) is required to decrypt the database. Use `apt install python3-pycryptodome` for Debian-based distributions or `pip3 install pycryptodomex` (no, that's not a typo) for pip-based installations.
+
 As with the build, you need a `bcprov*.jar` or set `BCPROV_JAR`.
 
 Then run:
