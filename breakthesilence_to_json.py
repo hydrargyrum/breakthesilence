@@ -46,7 +46,7 @@ class Converter:
         return Cryptodome.Util.Padding.unpad(cipher.decrypt(enc), aes_size)
 
     def convert(self, outpath):
-        self.db = sqlite3.connect(self.root / 'databases' / 'messages.db')
+        self.db = sqlite3.connect(str(self.root / 'databases' / 'messages.db'))
 
         dmessages = {}
         dparts = {}
