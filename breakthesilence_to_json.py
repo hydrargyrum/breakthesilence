@@ -91,6 +91,7 @@ class Converter:
         self.root = root
         self.enckey = enckey
         self.mackey = mackey
+        self.db = None
 
     def decrypt(self, data):
         aes_size = 16
@@ -152,7 +153,7 @@ class Converter:
             'conversations': list(dmessages.values()),
         }
 
-        with open(sys.argv[2], 'w') as fd:
+        with open(outpath, 'w') as fd:
             json.dump(outdata, fd)
 
     def get_rows(self, req):
