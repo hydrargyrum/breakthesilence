@@ -67,3 +67,32 @@ Then run:
 You can convert the messages JSON file to many formats with sister project [Epistolaire converters](https://gitlab.com/hydrargyrum/epistolaire/-/tree/master/converters).
 
 The JSON format is easy to use, so one can write another converter.
+
+# Alternate way (using `adb`)
+Sometimes, the "export" feature from Silence is impossible to use, but it's possible to export manually with `adb`.
+
+## 1. Allow `adb` access
+`adb` is most often done for USB.
+Follow instructions from online guides like [1](https://androidmore.com/authorize-adb-android/) or [2](https://www.howtogeek.com/129728/how-to-access-the-developer-options-menu-and-enable-usb-debugging-on-android-4.2/).
+
+In a nushell:
+- enable developer settings
+- enable adb from there
+- install adb on computer
+- plug phone to compute with USB
+- run `adb devices` on computer to check your phone is detected
+
+## 2. Copy using `adb`
+This will copy Silence internal storage to the computer in current directory, in a `org.smssecure.smssecure` subfolder:
+
+	adb pull /data/data/org.smssecure.smssecure/
+
+## 3. Same as above
+Do step 3 from the regular "How to use" steps described above.
+
+## 4. Same as above
+Do step 4 from the regular "How to use" steps described above.
+The only difference is the folder isn't named `SilenceExport` but `org.smssecure.smssecure`.
+
+## 5. Same as above
+Do step 5 from the regular "How to use" steps described above.
