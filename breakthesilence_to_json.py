@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from base64 import b64encode, b64decode
-from enum import IntEnum
+from enum import IntFlag
 import hmac
 import json
 from pathlib import Path
@@ -13,10 +13,70 @@ import Cryptodome.Cipher.AES
 import Cryptodome.Util.Padding
 
 
-class MessageFlags(IntEnum):
-    key_exchange_mask = 0xFF00
-    outgoing = 0x15
-    errors_mask = 0x1B000000
+# From MmsSmsColumns.java
+class Types(IntFlag):
+    TOTAL_MASK = 0xFFFFFFFF
+
+    # Base Types
+    BASE_TYPE_MASK = 0x1F
+
+    BASE_INBOX_TYPE = 20
+    BASE_OUTBOX_TYPE = 21
+    BASE_SENDING_TYPE = 22
+    BASE_SENT_TYPE = 23
+    BASE_SENT_FAILED_TYPE = 24
+    BASE_DRAFT_TYPE = 27
+
+    # Message attributes
+    MESSAGE_ATTRIBUTE_MASK = 0xE0
+    MESSAGE_FORCE_SMS_BIT = 0x40
+
+    # Key Exchange Information
+    KEY_EXCHANGE_MASK = 0xFF00
+    KEY_EXCHANGE_BIT = 0x8000
+    KEY_EXCHANGE_STALE_BIT = 0x4000
+    KEY_EXCHANGE_PROCESSED_BIT = 0x2000
+    KEY_EXCHANGE_CORRUPTED_BIT = 0x1000
+    KEY_EXCHANGE_INVALID_VERSION_BIT = 0x800
+    KEY_EXCHANGE_BUNDLE_BIT = 0x400
+    KEY_EXCHANGE_IDENTITY_UPDATE_BIT = 0x200
+
+    # Secure Message Information
+    SECURE_MESSAGE_BIT = 0x800000
+    END_SESSION_BIT = 0x400000
+    PUSH_MESSAGE_BIT = 0x200000
+
+    # Group Message Information
+    GROUP_UPDATE_BIT = 0x10000
+    GROUP_QUIT_BIT = 0x20000
+
+    # XMPP Message Information
+    XMPP_EXCHANGE_BIT = 0x30000
+
+    # Encrypted Storage Information
+    ENCRYPTION_MASK = 0xFF000000
+    ENCRYPTION_SYMMETRIC_BIT = 0x80000000
+    ENCRYPTION_ASYMMETRIC_BIT = 0x40000000
+    ENCRYPTION_REMOTE_BIT = 0x20000000
+    ENCRYPTION_REMOTE_FAILED_BIT = 0x10000000
+    ENCRYPTION_REMOTE_NO_SESSION_BIT = 0x08000000
+    ENCRYPTION_REMOTE_DUPLICATE_BIT = 0x04000000
+    ENCRYPTION_REMOTE_LEGACY_BIT = 0x02000000
+
+    errors_mask = (
+        KEY_EXCHANGE_STALE_BIT
+        | KEY_EXCHANGE_CORRUPTED_BIT
+        | KEY_EXCHANGE_INVALID_VERSION_BIT
+        | ENCRYPTION_REMOTE_FAILED_BIT
+        | ENCRYPTION_REMOTE_NO_SESSION_BIT
+        | ENCRYPTION_REMOTE_DUPLICATE_BIT
+        | ENCRYPTION_REMOTE_LEGACY_BIT
+    )
+    control_mask = (
+        END_SESSION_BIT
+        | GROUP_UPDATE_BIT
+        | GROUP_QUIT_BIT
+    )
 
 
 def to_uint(i):
@@ -57,13 +117,15 @@ class Converter:
             sms['flags'] = to_uint(sms['type'])
 
             sms['type'] = 1
-            if sms['flags'] & MessageFlags.outgoing:
+            if sms['flags'] & Types.BASE_OUTBOX_TYPE:
                 sms['type'] = 2
 
-            if sms['flags'] & MessageFlags.key_exchange_mask:
+            if sms['flags'] & Types.KEY_EXCHANGE_MASK:
                 sms['body'] = f"Key exchange (flags = {sms['flags']:#010x}) - {sms['body']}"
-            elif sms['flags'] & MessageFlags.errors_mask:
+            elif sms['flags'] & Types.errors_mask:
                 sms['body'] = f"Error (flags = {sms['flags']:#010x}) - {sms['body']}"
+            elif sms['flags'] & Types.control_mask:
+                sms['body'] = f"Control (flags = {sms['flags']:#010x}) - {sms['body']}"
             else:
                 sms['body'] = self.decrypt(b64decode(sms["body"])).decode('utf-8')
 
